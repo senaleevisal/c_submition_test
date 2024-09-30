@@ -6,7 +6,6 @@ on:
       code:
         description: "The C code to compile and run"
         required: true
-        default: "#include <stdio.h>\nint main() {\n for(int i = 1; i <= 10; i++) { printf(\"%d\\n\", i); }\n return 0;\n}"
 
 jobs:
   api_job:
@@ -17,19 +16,19 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
       
-      # Step 2: Process the API request's posted code
+      # Step 2: Fetch and display the code
       - name: Fetch code from API request payload
         run: |
           echo "The following code was passed via API:"
           echo "${{ github.event.inputs.code }}"
       
-      # Step 3: Save the passed code into a file (properly escaping quotes in printf)
+      # Step 3: Write the code to a file
       - name: Write code to file
         run: |
           echo "${{ github.event.inputs.code }}" > loop_code.c
 
-      # Step 4: Compile and Run the Submitted C Code
-      - name: Compile and Run C Code
+      # Step 4: Compile and run the code
+      - name: Compile and run C code
         run: |
           gcc loop_code.c -o loop_code
           ./loop_code
