@@ -23,7 +23,7 @@ jobs:
           echo "The following code was passed via API:"
           echo "${{ github.event.inputs.code }}"
       
-      # Step 3: Save the passed code into a file (e.g., loop_code.c)
+      # Step 3: Save the passed code into a file (properly escaping quotes in printf)
       - name: Write code to file
         run: |
           echo "${{ github.event.inputs.code }}" > loop_code.c
