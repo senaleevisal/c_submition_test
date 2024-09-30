@@ -1,0 +1,47 @@
+name: Evaluate C Code
+
+on:
+  issues:
+    types: [opened, edited]
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Setup C environment
+        run: sudo apt-get install build-essential
+
+      - name: Extract code from issue
+        id: extract
+        run: |
+          echo "::set-output name=code::$(cat $GITHUB_EVENT_PATH | jq -r .issue.body)"
+
+      - name: Save code to file
+        run: |
+          echo "${{ steps.extract.outputs.code }}" > submission.c
+
+      - name: Compile and run
+        run: gcc submission.c -o submission && ./submission > result.txt
+
+      - name: Check output
+        id: check
+        run: |
+          if [ "$(cat result.txt)" == "1 2 3 4 5 6 7 8 9 10" ]; then
+            echo "correct=true" >> $GITHUB_ENV
+          else
+            echo "correct=false" >> $GITHUB_ENV
+
+      - name: Respond on Issue
+        if: ${{ env.correct == 'true' }}
+        uses: actions/github-script@v5
+        with:
+          script: |
+            github.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.name,
+              body: 'Test Passed: 25 Points'
+            })
