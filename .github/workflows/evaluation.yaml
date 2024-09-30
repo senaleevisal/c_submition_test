@@ -1,47 +1,30 @@
-name: Evaluate C Code
+name: REST API Trigger for C Code
 
 on:
-  issues:
-    types: [opened, edited]
+  workflow_dispatch: # This allows manual or API trigger
 
 jobs:
-  evaluate:
+  api_job:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Setup C environment
-        run: sudo apt-get install build-essential
-
-      - name: Extract code from issue
-        id: extract
+      # Step 1: Checkout the repository
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      
+      # Step 2: Process the API request's posted code
+      - name: Fetch code from API request payload
         run: |
-          echo "::set-output name=code::$(cat $GITHUB_EVENT_PATH | jq -r .issue.body)"
-
-      - name: Save code to file
+          echo "The following code was passed via API:"
+          echo "${{ github.event.inputs.code }}"
+      
+      # Step 3: Save the passed code into a file (e.g., loop_code.c)
+      - name: Write code to file
         run: |
-          echo "${{ steps.extract.outputs.code }}" > submission.c
+          echo "${{ github.event.inputs.code }}" > loop_code.c
 
-      - name: Compile and run
-        run: gcc submission.c -o submission && ./submission > result.txt
-
-      - name: Check output
-        id: check
+      # Step 4: Compile and Run the Submitted C Code
+      - name: Compile and Run C Code
         run: |
-          if [ "$(cat result.txt)" == "1 2 3 4 5 6 7 8 9 10" ]; then
-            echo "correct=true" >> $GITHUB_ENV
-          else
-            echo "correct=false" >> $GITHUB_ENV
-
-      - name: Respond on Issue
-        if: ${{ env.correct == 'true' }}
-        uses: actions/github-script@v5
-        with:
-          script: |
-            github.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.name,
-              body: 'Test Passed: 25 Points'
-            })
+          gcc loop_code.c -o loop_code
+          ./loop_code
